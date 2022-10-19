@@ -12,10 +12,10 @@ stream_f.exe: stream.f mysecond.o
 	$(FC) $(FFLAGS) stream.o mysecond.o -o stream_f.exe
 
 stream_c.exe: stream.c
-	$(CC) $(CFLAGS) stream.c -o stream_c.exe
+	$(CC) $(CFLAGS) -O -DSTREAM_ARRAY_SIZE=$(ARRAY_SIZE) -DNTIMES=2 stream.c -o stream_c.$(ARRAY_SIZE)
 
 clean:
-	rm -f stream_f.exe stream_c.exe *.o
+	rm -f stream_f.exe stream_c.exe *.o stream_c.*
 
 # an example of a more complex build line for the Intel icc compiler
 stream.icc: stream.c
