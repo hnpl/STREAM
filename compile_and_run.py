@@ -25,8 +25,8 @@ def compile_and_run(n_elements, output_file):
     assert(not error)
     output, error = execute_stream(n_elements)
     assert(not error)
-    with open(output_file, "w") as f:
-        f.write(str(output))
+    with open(output_file, "wb") as f:
+        f.write(output)
 
 def get_n_elements(LLC_size): # LLC_size in bytes
     return LLC_size // 8
