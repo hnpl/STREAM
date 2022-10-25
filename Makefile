@@ -1,10 +1,10 @@
-CC = gcc
-CFLAGS = -O2 -fopenmp
+#CC = /riscv/_install/bin/riscv64-unknown-linux-gnu-gcc
+CFLAGS = -O2 -fopenmp -static
 
 FC = gfortran
 FFLAGS = -O2 -fopenmp
 
-all: stream_f.exe stream_c.exe
+all: stream_c.exe
 
 stream_f.exe: stream.f mysecond.o
 	$(CC) $(CFLAGS) -c mysecond.c
