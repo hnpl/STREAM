@@ -1,6 +1,7 @@
 import subprocess
 import os
 from pathlib import Path
+import sys
 
 def run_cmd(command, command_env = {}):
     curr_env = os.environ.copy()
@@ -33,13 +34,19 @@ def get_n_elements(LLC_size): # LLC_size in bytes
 
 if __name__ == "__main__":
     # HiFive Unmatched: 32KB L1 Dcache, 2MB L2 cache
-    min_n_elements = get_n_elements(2 * 1024 * 1024) * 4
-    max_n_elements = 1000 * min_n_elements
-    step = min_n_elements
+    #min_n_elements = get_n_elements(80 * 1024 * 1024) // 1024
+    #max_n_elements = 1200 * min_n_elements
+    #step = min_n_elements // 4
     output_folder = Path("results")
     output_folder.mkdir(exist_ok=True)
 
-    for n_elements in range(min_n_elements, max_n_elements+1, step):
+    input_file = sys.argv[1]
+    with open(input_file, "r") as f:
+        line = f.readlines()[0]
+        line = line.strip().split()
+        sizes = list(map(int, line))
+
+    for n_elements in sizes:
         output_path = output_folder / Path(f"{n_elements}.log")
         compile_and_run(n_elements, output_path)
 
