@@ -1,5 +1,6 @@
 #CC = /riscv/_install/bin/riscv64-unknown-linux-gnu-gcc
 OUTPUT_PATH ?= .
+N_THREADS ?= 4
 CFLAGS = -O2 -fopenmp -static
 
 FC = gfortran
@@ -13,7 +14,7 @@ stream_f.exe: stream.f mysecond.o
 	$(FC) $(FFLAGS) stream.o mysecond.o -o stream_f.exe
 
 stream_c.exe: stream.c
-	$(CC) $(CFLAGS) -O -DSTREAM_ARRAY_SIZE=$(ARRAY_SIZE) -DNTIMES=2 stream.c -o $(OUTPUT_PATH)/stream_c.$(ARRAY_SIZE)
+	$(CC) $(CFLAGS) -O -DSTREAM_ARRAY_SIZE=$(ARRAY_SIZE) -DNTIMES=2 -DN_THREADS=$(N_THREADS) stream.c -o $(OUTPUT_PATH)/stream_c.$(ARRAY_SIZE)
 
 clean:
 	rm -f stream_f.exe stream_c.exe *.o stream_c.*

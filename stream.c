@@ -176,6 +176,10 @@
 #define STREAM_TYPE double
 #endif
 
+#ifndef N_THREADS
+#define N_THREADS 4
+#endif
+
 static STREAM_TYPE	a[STREAM_ARRAY_SIZE+OFFSET],
 			b[STREAM_ARRAY_SIZE+OFFSET],
 			c[STREAM_ARRAY_SIZE+OFFSET];
@@ -203,10 +207,14 @@ extern void tuned_STREAM_Triad(STREAM_TYPE scalar);
 #endif
 #ifdef _OPENMP
 extern int omp_get_num_threads();
+//https://www.openmp.org/spec-html/5.0/openmpsu110.html
+extern void omp_set_num_threads(int);
 #endif
 int
 main()
     {
+    omp_set_num_threads(N_THREADS);
+
     int			quantum, checktick();
     int			BytesPerWord;
     int			k;
