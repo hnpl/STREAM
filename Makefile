@@ -3,9 +3,9 @@ OUTPUT_PATH ?= .
 N_THREADS ?= 4
 CFLAGS = -O2 -fopenmp -static
 
-# if m5_build_path is defined, we build the STREAM benchmark with the m5 annotations
+# if both m5ops_header_path and m5_build_path are defined, we build the STREAM benchmark with the m5 annotations
 ifneq ($(M5_BUILD_PATH),)
-  CFLAGS += -I$(M5_BUILD_PATH)/../../../../include/
+  CFLAGS += -I$(M5OPS_HEADER_PATH)
   CFLAGS += -O -DGEM5_ANNOTATION=1 
   LDFLAGS += -lm5 -L$(M5_BUILD_PATH)/out/
 endif

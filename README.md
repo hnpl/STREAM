@@ -9,11 +9,16 @@ The following are environment variables allowing customizing the STREAM build,
     - The STREAM array size.
     - No default value.
 - `M5_BUILD_PATH`:
-    - If specified, the STREAM binary will be built with gem5 annotations.
+    - If specified along with `M5OPS_HEADER_PATH`, the STREAM binary will be built
+with m5 annotations.
     - No default value.
     - The path should be the path to the gem5' m5 build folder of a specific ISA.
   E.g., `gem5/util/m5/build/riscv/`
-
+- `M5OPS_HEADER_PATH`:
+    - If specified along with `M5_BUILD_PATH`, the STREAM binary will be built with
+m5 annotations.
+    - No default value.
+    - The path typically is, `gem5/include`.
 ---
 
 ```
