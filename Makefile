@@ -6,6 +6,13 @@ CFLAGS = -O2 -fopenmp -static
 FC = gfortran
 FFLAGS = -O2 -fopenmp
 
+# if m5_build_path is defined, we build the STREAM benchmark with the m5 annotations
+ifneq ($(M5_BUILD_PATH),)
+  CFLAGS += -I$(M5_BUILD_PATH)/../../../../include/
+  CFLAGS += -O -DGEM5_ANNOTATION=1 -v
+  LDFLAGS += -lm5 -L$(M5_BUILD_PATH)/out/
+endif
+
 all: stream_c.exe
 
 stream_f.exe: stream.f mysecond.o
@@ -14,7 +21,7 @@ stream_f.exe: stream.f mysecond.o
 	$(FC) $(FFLAGS) stream.o mysecond.o -o stream_f.exe
 
 stream_c.exe: stream.c
-	$(CC) $(CFLAGS) -O -DSTREAM_ARRAY_SIZE=$(ARRAY_SIZE) -DNTIMES=2 -DN_THREADS=$(N_THREADS) stream.c -o $(OUTPUT_PATH)/stream_c.$(ARRAY_SIZE)
+	$(CC) $(CFLAGS) -O -DSTREAM_ARRAY_SIZE=$(ARRAY_SIZE) -DNTIMES=2 -DN_THREADS=$(N_THREADS) stream.c -o $(OUTPUT_PATH)/stream_c.$(ARRAY_SIZE) $(LDFLAGS)
 
 clean:
 	rm -f stream_f.exe stream_c.exe *.o stream_c.*

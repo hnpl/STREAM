@@ -180,6 +180,10 @@
 #define N_THREADS 4
 #endif
 
+#ifdef GEM5_ANNOTATION
+#include <gem5/m5ops.h>
+#endif
+
 static STREAM_TYPE	a[STREAM_ARRAY_SIZE+OFFSET],
 			b[STREAM_ARRAY_SIZE+OFFSET],
 			c[STREAM_ARRAY_SIZE+OFFSET];
@@ -314,6 +318,10 @@ main()
     scalar = 3.0;
     for (k=0; k<NTIMES; k++)
 	{
+#ifdef GEM5_ANNOTATION
+        if (k == 1)
+            m5_exit(0); // exit to gem5 to reset the stats
+#endif
 	times[0][k] = mysecond();
 #ifdef TUNED
         tuned_STREAM_Copy();
@@ -353,6 +361,12 @@ main()
 	    a[j] = b[j]+scalar*c[j];
 #endif
 	times[3][k] = mysecond() - times[3][k];
+
+#ifdef GEM5_ANNOTATION
+    if (k + 1 == NTIMES)
+        m5_exit(0); // exit gem5 to reset stats again
+                    // here, we avoid taking stats from the SUMMARY step
+#endif
 	}
 
     /*	--- SUMMARY --- */
