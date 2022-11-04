@@ -1,3 +1,22 @@
+The following are environment variables allowing customizing the STREAM build,
+- `OUTPUT_PATH`:
+    - The directory that the built binary will be located.
+    - Default: current directory.
+- `N_THREADS`:
+    - The number of threads that will be spawned by OpenMP.
+    - Default: 4.
+- `ARRAY_SIZE` (required):
+    - The STREAM array size.
+    - No default value.
+- `M5_BUILD_PATH`:
+    - If specified, the STREAM binary will be built with gem5 annotations.
+    - No default value.
+    - The path should be the path to the gem5' m5 build folder of a specific ISA.
+  E.g., `gem5/util/m5/build/riscv/`
+
+---
+
+```
 ===============================================
 
 STREAM is the de facto industry standard benchmark
@@ -108,3 +127,4 @@ Virginia under the generous sponsorship of Professor Bill
 Wulf and Professor Alan Batson.
 
 ===============================================
+```
