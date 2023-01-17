@@ -201,6 +201,8 @@ static double	bytes[4] = {
     3 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE
     };
 
+static double times[4][NTIMES];
+
 extern double mysecond();
 extern void checkSTREAMresults();
 #ifdef TUNED
@@ -224,7 +226,7 @@ main()
     int			k;
     ssize_t		j;
     STREAM_TYPE		scalar;
-    double		t, times[4][NTIMES];
+    double		t;
 
     /* --- SETUP --- determine precision and check timing --- */
 
@@ -368,7 +370,15 @@ main()
                     // here, we avoid taking stats from the SUMMARY step
 #endif
 	}
+    void do_summary();
+    do_summary();
+    return 0;
+}
 
+void __attribute__((optimize("no-tree-vectorize")))
+do_summary()
+{
+    int j, k;
     /*	--- SUMMARY --- */
 
     for (k=1; k<NTIMES; k++) /* note -- skip first iteration */
@@ -396,8 +406,6 @@ main()
     /* --- Check Results --- */
     checkSTREAMresults();
     printf(HLINE);
-
-    return 0;
 }
 
 # define	M	20

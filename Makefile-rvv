@@ -1,7 +1,8 @@
 CC = /riscv/_install/bin/riscv64-unknown-linux-gnu-gcc
 OUTPUT_PATH ?= .
 N_THREADS ?= 4
-CFLAGS = -O3 -fopenmp -static -march=rv64gcv -ftree-vectorize -ftree-vectorizer-verbose=5 -ffast-math -fassociative-math
+#CFLAGS = -O2 -fopenmp -static -march=rv64gcv -ftree-vectorize -ftree-vectorizer-verbose=5 -ffast-math -fassociative-math
+CFLAGS = -O2 -fopenmp -static -march=rv64gcv -ftree-vectorize -ftree-vectorizer-verbose=5 -fopt-info-vec-missed
 
 # if both m5ops_header_path and m5_build_path are defined, we build the STREAM benchmark with the m5 annotations
 ifneq ($(M5_BUILD_PATH),)
