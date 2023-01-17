@@ -402,7 +402,7 @@ main()
 
 # define	M	20
 
-int
+int __attribute__((optimize("no-tree-vectorize")))
 checktick()
     {
     int		i, minDelta, Delta;
@@ -452,7 +452,8 @@ double mysecond()
 #ifndef abs
 #define abs(a) ((a) >= 0 ? (a) : -(a))
 #endif
-void checkSTREAMresults ()
+void __attribute__((optimize("no-tree-vectorize")))
+checkSTREAMresults ()
 {
 	STREAM_TYPE aj,bj,cj,scalar;
 	STREAM_TYPE aSumErr,bSumErr,cSumErr;
