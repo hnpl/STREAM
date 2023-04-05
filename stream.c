@@ -195,18 +195,16 @@ static double	bytes[4] = {
 
 extern double mysecond();
 extern void checkSTREAMresults();
-#ifdef TUNED
-extern void tuned_STREAM_Copy();
-extern void tuned_STREAM_Scale(STREAM_TYPE scalar);
-extern void tuned_STREAM_Add();
-extern void tuned_STREAM_Triad(STREAM_TYPE scalar);
-#endif
 #ifdef _OPENMP
 extern int omp_get_num_threads();
+extern int omp_set_num_threads();
 #endif
 int
 main()
     {
+#ifdef NTHREADS
+    omp_set_num_threads(NTHREADS);
+#endif
     int			quantum, checktick();
     int			BytesPerWord;
     int			k;
@@ -307,43 +305,27 @@ main()
     for (k=0; k<NTIMES; k++)
 	{
 	times[0][k] = mysecond();
-#ifdef TUNED
-        tuned_STREAM_Copy();
-#else
 #pragma omp parallel for
 	for (j=0; j<STREAM_ARRAY_SIZE; j++)
 	    c[j] = a[j];
-#endif
 	times[0][k] = mysecond() - times[0][k];
 	
 	times[1][k] = mysecond();
-#ifdef TUNED
-        tuned_STREAM_Scale(scalar);
-#else
 #pragma omp parallel for
 	for (j=0; j<STREAM_ARRAY_SIZE; j++)
 	    b[j] = scalar*c[j];
-#endif
 	times[1][k] = mysecond() - times[1][k];
 	
 	times[2][k] = mysecond();
-#ifdef TUNED
-        tuned_STREAM_Add();
-#else
 #pragma omp parallel for
 	for (j=0; j<STREAM_ARRAY_SIZE; j++)
 	    c[j] = a[j]+b[j];
-#endif
 	times[2][k] = mysecond() - times[2][k];
 	
 	times[3][k] = mysecond();
-#ifdef TUNED
-        tuned_STREAM_Triad(scalar);
-#else
 #pragma omp parallel for
 	for (j=0; j<STREAM_ARRAY_SIZE; j++)
 	    a[j] = b[j]+scalar*c[j];
-#endif
 	times[3][k] = mysecond() - times[3][k];
 	}
 
@@ -382,18 +364,17 @@ main()
 
 int
 checktick()
-    {
-    int		i, minDelta, Delta;
-    double	t1, t2, timesfound[M];
+{
+    int i, minDelta, Delta;
+    double t1, t2, timesfound[M];
 
 /*  Collect a sequence of M unique time values from the system. */
 
     for (i = 0; i < M; i++) {
-	t1 = mysecond();
-	while( ((t2=mysecond()) - t1) < 1.0E-6 )
-	    ;
-	timesfound[i] = t1 = t2;
-	}
+        t1 = mysecond();
+        while( ((t2=mysecond()) - t1) < 1.0E-6 );
+        timesfound[i] = t1 = t2;
+    }
 
 /*
  * Determine the minimum difference between these M values.
@@ -403,12 +384,12 @@ checktick()
 
     minDelta = 1000000;
     for (i = 1; i < M; i++) {
-	Delta = (int)( 1.0E6 * (timesfound[i]-timesfound[i-1]));
-	minDelta = MIN(minDelta, MAX(Delta,0));
+        Delta = (int)( 1.0E6 * (timesfound[i]-timesfound[i-1]));
+        minDelta = MIN(minDelta, MAX(Delta,0));
 	}
 
    return(minDelta);
-    }
+}
 
 
 
@@ -419,12 +400,11 @@ checktick()
 
 double mysecond()
 {
-        struct timeval tp;
-        struct timezone tzp;
-        int i;
-
-        i = gettimeofday(&tp,&tzp);
-        return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+    struct timeval tp;
+    struct timezone tzp;
+    int i;
+    i = gettimeofday(&tp,&tzp);
+    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
 }
 
 #ifndef abs
@@ -548,38 +528,3 @@ void checkSTREAMresults ()
 #endif
 }
 
-#ifdef TUNED
-/* stubs for "tuned" versions of the kernels */
-void tuned_STREAM_Copy()
-{
-	ssize_t j;
-#pragma omp parallel for
-        for (j=0; j<STREAM_ARRAY_SIZE; j++)
-            c[j] = a[j];
-}
-
-void tuned_STREAM_Scale(STREAM_TYPE scalar)
-{
-	ssize_t j;
-#pragma omp parallel for
-	for (j=0; j<STREAM_ARRAY_SIZE; j++)
-	    b[j] = scalar*c[j];
-}
-
-void tuned_STREAM_Add()
-{
-	ssize_t j;
-#pragma omp parallel for
-	for (j=0; j<STREAM_ARRAY_SIZE; j++)
-	    c[j] = a[j]+b[j];
-}
-
-void tuned_STREAM_Triad(STREAM_TYPE scalar)
-{
-	ssize_t j;
-#pragma omp parallel for
-	for (j=0; j<STREAM_ARRAY_SIZE; j++)
-	    a[j] = b[j]+scalar*c[j];
-}
-/* end of stubs for the "tuned" versions of the kernels */
-#endif
