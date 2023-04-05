@@ -19,6 +19,10 @@
 # include <limits.h>
 # include <sys/time.h>
 
+#ifdef GEM5_ANNOTATION
+#include <gem5/m5ops.h>
+#endif
+
 // See documentation in the README file.
 #ifndef NTIMES
 #   define NTIMES	2
@@ -169,29 +173,44 @@ main()
     scalar = 3.0;
     for (k=0; k<NTIMES; k++)
     {
-    times[0][k] = mysecond();
+#ifdef GEM5_ANNOTATION
+        if (k == 1)
+            m5_exit(0); // exit to gem5 to reset the stats
+#endif
+
+        // start Copy
+        times[0][k] = mysecond();
 #pragma omp parallel for
-    for (j=0; j<STREAM_ARRAY_SIZE; j++)
-        c[j] = a[j];
-    times[0][k] = mysecond() - times[0][k];
-    
-    times[1][k] = mysecond();
+        for (j=0; j<STREAM_ARRAY_SIZE; j++)
+            c[j] = a[j];
+        times[0][k] = mysecond() - times[0][k];
+
+        // start Scale
+        times[1][k] = mysecond();
 #pragma omp parallel for
     for (j=0; j<STREAM_ARRAY_SIZE; j++)
         b[j] = scalar*c[j];
-    times[1][k] = mysecond() - times[1][k];
-    
-    times[2][k] = mysecond();
+        times[1][k] = mysecond() - times[1][k];
+
+        // start Add
+        times[2][k] = mysecond();
 #pragma omp parallel for
-    for (j=0; j<STREAM_ARRAY_SIZE; j++)
-        c[j] = a[j]+b[j];
-    times[2][k] = mysecond() - times[2][k];
-    
-    times[3][k] = mysecond();
+        for (j=0; j<STREAM_ARRAY_SIZE; j++)
+            c[j] = a[j]+b[j];
+        times[2][k] = mysecond() - times[2][k];
+
+        // start Triad
+        times[3][k] = mysecond();
 #pragma omp parallel for
-    for (j=0; j<STREAM_ARRAY_SIZE; j++)
-        a[j] = b[j]+scalar*c[j];
-    times[3][k] = mysecond() - times[3][k];
+        for (j=0; j<STREAM_ARRAY_SIZE; j++)
+            a[j] = b[j]+scalar*c[j];
+        times[3][k] = mysecond() - times[3][k];
+
+#ifdef GEM5_ANNOTATION
+    if (k + 1 == NTIMES)
+        m5_exit(0); // exit gem5 to reset stats again
+                    // here, we avoid taking stats from the SUMMARY step
+#endif
     }
 
     /*	--- SUMMARY --- */
