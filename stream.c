@@ -23,14 +23,7 @@
 #include <gem5/m5ops.h>
 #endif
 
-// See documentation in the README file.
-#ifndef NTIMES
-#   define NTIMES	2
-#endif
-
-#ifndef OFFSET
-#   define OFFSET	0
-#endif
+#include "stream_common.h"
 
 # define HLINE "-------------------------------------------------------------\n"
 
@@ -41,21 +34,17 @@
 # define MAX(x,y) ((x)>(y)?(x):(y))
 # endif
 
-#ifndef STREAM_TYPE
-#define STREAM_TYPE double
-#endif
-
-static STREAM_TYPE	a[STREAM_ARRAY_SIZE+OFFSET],
+static STREAM_TYPE a[STREAM_ARRAY_SIZE+OFFSET],
             b[STREAM_ARRAY_SIZE+OFFSET],
             c[STREAM_ARRAY_SIZE+OFFSET];
 
-static double	avgtime[4] = {0}, maxtime[4] = {0},
+static double avgtime[4] = {0}, maxtime[4] = {0},
         mintime[4] = {FLT_MAX,FLT_MAX,FLT_MAX,FLT_MAX};
 
-static char	*label[4] = {"Copy:      ", "Scale:     ",
+static char *label[4] = {"Copy:      ", "Scale:     ",
     "Add:       ", "Triad:     "};
 
-static double	bytes[4] = {
+static double bytes[4] = {
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     2 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
     3 * sizeof(STREAM_TYPE) * STREAM_ARRAY_SIZE,
@@ -68,21 +57,28 @@ extern void checkSTREAMresults();
 extern int omp_get_num_threads();
 extern int omp_set_num_threads();
 #endif
+
+extern void copy(STREAM_TYPE dst[], STREAM_TYPE src[]);
+extern void scale(STREAM_TYPE dst[], STREAM_TYPE src[]);
+extern void add(STREAM_TYPE dst[], STREAM_TYPE src1[], STREAM_TYPE src2[]);
+extern void triad(STREAM_TYPE dst[], STREAM_TYPE src1[], STREAM_TYPE src2[]);
+
+const STREAM_TYPE scalar = 3.0;
+
 int
 main()
     {
 #ifdef NTHREADS
     omp_set_num_threads(NTHREADS);
 #endif
-    int			quantum, checktick();
-    int			BytesPerWord;
-    int			k;
-    ssize_t		j;
-    STREAM_TYPE		scalar;
-    double		t, times[4][NTIMES];
+    int   quantum, checktick();
+    int   BytesPerWord;
+    int   k;
+    ssize_t  j;
+    STREAM_TYPE  scalar;
+    double  t, times[4][NTIMES];
 
     /* --- SETUP --- determine precision and check timing --- */
-
     printf(HLINE);
     printf("STREAM version $Revision: 5.10 $\n");
     printf(HLINE);
@@ -168,7 +164,7 @@ main()
     printf("precision of your system timer.\n");
     printf(HLINE);
     
-    /*	--- MAIN LOOP --- repeat test cases NTIMES times --- */
+    /* --- MAIN LOOP --- repeat test cases NTIMES times --- */
 
     scalar = 3.0;
     for (k=0; k<NTIMES; k++)
@@ -180,30 +176,22 @@ main()
 
         // start Copy
         times[0][k] = mysecond();
-#pragma omp parallel for
-        for (j=0; j<STREAM_ARRAY_SIZE; j++)
-            c[j] = a[j];
+        copy(c, a);
         times[0][k] = mysecond() - times[0][k];
 
         // start Scale
         times[1][k] = mysecond();
-#pragma omp parallel for
-    for (j=0; j<STREAM_ARRAY_SIZE; j++)
-        b[j] = scalar*c[j];
+        scale(b, c);
         times[1][k] = mysecond() - times[1][k];
 
         // start Add
         times[2][k] = mysecond();
-#pragma omp parallel for
-        for (j=0; j<STREAM_ARRAY_SIZE; j++)
-            c[j] = a[j]+b[j];
+        add(c, a, b);
         times[2][k] = mysecond() - times[2][k];
 
         // start Triad
         times[3][k] = mysecond();
-#pragma omp parallel for
-        for (j=0; j<STREAM_ARRAY_SIZE; j++)
-            a[j] = b[j]+scalar*c[j];
+        triad(a, b, c);
         times[3][k] = mysecond() - times[3][k];
 
 #ifdef GEM5_ANNOTATION
@@ -213,7 +201,7 @@ main()
 #endif
     }
 
-    /*	--- SUMMARY --- */
+    /* --- SUMMARY --- */
 
     for (k=1; k<NTIMES; k++) /* note -- skip first iteration */
     {
@@ -244,7 +232,19 @@ main()
     return 0;
 }
 
-# define	M	20
+/* A gettimeofday routine to give access to the wall
+   clock timer on most UNIX-like systems.  */
+
+double mysecond()
+{
+    struct timeval tp;
+    struct timezone tzp;
+    int i;
+    i = gettimeofday(&tp,&tzp);
+    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
+}
+
+# define M 20
 
 int
 checktick()
@@ -276,21 +276,6 @@ checktick()
 }
 
 
-
-/* A gettimeofday routine to give access to the wall
-   clock timer on most UNIX-like systems.  */
-
-#include <sys/time.h>
-
-double mysecond()
-{
-    struct timeval tp;
-    struct timezone tzp;
-    int i;
-    i = gettimeofday(&tp,&tzp);
-    return ( (double) tp.tv_sec + (double) tp.tv_usec * 1.e-6 );
-}
-
 #ifndef abs
 #define abs(a) ((a) >= 0 ? (a) : -(a))
 #endif
@@ -300,8 +285,8 @@ void checkSTREAMresults ()
     STREAM_TYPE aSumErr,bSumErr,cSumErr;
     STREAM_TYPE aAvgErr,bAvgErr,cAvgErr;
     double epsilon;
-    ssize_t	j;
-    int	k,ierr,err;
+    ssize_t j;
+    int k,ierr,err;
 
     /* reproduce initialization */
     aj = 1.0;
@@ -327,7 +312,7 @@ void checkSTREAMresults ()
         aSumErr += abs(a[j] - aj);
         bSumErr += abs(b[j] - bj);
         cSumErr += abs(c[j] - cj);
-        // if (j == 417) printf("Index 417: c[j]: %f, cj: %f\n",c[j],cj);	// MCCALPIN
+        // if (j == 417) printf("Index 417: c[j]: %f, cj: %f\n",c[j],cj); // MCCALPIN
     }
     aAvgErr = aSumErr / (STREAM_TYPE) STREAM_ARRAY_SIZE;
     bAvgErr = bSumErr / (STREAM_TYPE) STREAM_ARRAY_SIZE;
