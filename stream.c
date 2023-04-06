@@ -58,10 +58,10 @@ extern int omp_get_num_threads();
 extern int omp_set_num_threads();
 #endif
 
-extern void copy(STREAM_TYPE dst[], STREAM_TYPE src[]);
-extern void scale(STREAM_TYPE dst[], STREAM_TYPE src[]);
-extern void add(STREAM_TYPE dst[], STREAM_TYPE src1[], STREAM_TYPE src2[]);
-extern void triad(STREAM_TYPE dst[], STREAM_TYPE src1[], STREAM_TYPE src2[]);
+extern void copy(STREAM_TYPE* restrict dst, STREAM_TYPE* restrict src);
+extern void scale(STREAM_TYPE* restrict dst, STREAM_TYPE* restrict src, const STREAM_TYPE scalar);
+extern void add(STREAM_TYPE* restrict dst, STREAM_TYPE* restrict src1, STREAM_TYPE* restrict src2);
+extern void triad(STREAM_TYPE* restrict dst, STREAM_TYPE* restrict src1, STREAM_TYPE* restrict src2, const STREAM_TYPE scalar);
 
 const STREAM_TYPE scalar = 3.0;
 
@@ -181,7 +181,7 @@ main()
 
         // start Scale
         times[1][k] = mysecond();
-        scale(b, c);
+        scale(b, c, scalar);
         times[1][k] = mysecond() - times[1][k];
 
         // start Add
@@ -191,7 +191,7 @@ main()
 
         // start Triad
         times[3][k] = mysecond();
-        triad(a, b, c);
+        triad(a, b, c, scalar);
         times[3][k] = mysecond() - times[3][k];
 
 #ifdef GEM5_ANNOTATION

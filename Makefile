@@ -26,7 +26,10 @@ stream_c$(OUTPUT_SUFFIX).o: stream.c
 	$(CC) $(CFLAGS_MAIN) -c $(HARDCODED_OPTIONS) stream.c -o stream_c$(OUTPUT_SUFFIX).o
 
 stream: stream_kernels$(OUTPUT_SUFFIX).o stream_c$(OUTPUT_SUFFIX).o
-	$(CC) $(LDFLAGS) stream_kernels$(OUTPUT_SUFFIX).o stream_c$(OUTPUT_SUFFIX).o -o stream$(OUTPUT_SUFFIX)
+	$(CC) $(LDFLAGS) stream_kernels$(OUTPUT_SUFFIX).o stream_c$(OUTPUT_SUFFIX).o -o stream_c$(OUTPUT_SUFFIX)
 
 clean:
 	rm -f stream_kernels$(OUTPUT_SUFFIX).o stream_c$(OUTPUT_SUFFIX).o stream$(OUTPUT_SUFFIX)
+
+clean-all:
+	rm -f *.o stream_c.*
